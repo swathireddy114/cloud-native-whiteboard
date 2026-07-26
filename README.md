@@ -1,217 +1,159 @@
-# Whiteboard Application on AWS EKS + Redis
+# Cloud-Native Whiteboard Application
 
-This project deploys a **real-time collaborative whiteboard application** on **AWS EKS (Kubernetes)** using **Docker**, **AWS ECR**, and **Redis** for shared state and caching.
-
-The repository contains Kubernetes **Deployment** and **Service** YAML files for both the whiteboard application and Redis, demonstrating a real-world cloud-native deployment workflow.
+A cloud-native collaborative whiteboard application deployed on **Amazon Elastic Kubernetes Service (EKS)** using **Docker**, **Kubernetes**, **Amazon Elastic Container Registry (ECR)**, and **Redis**. The project demonstrates containerisation, orchestration, cloud deployment, and real-time data synchronisation in a scalable Kubernetes environment.
 
 ---
 
-## Architecture Overview
-- Dockerised Node.js whiteboard application
-- Container image stored in AWS ECR
-- Kubernetes cluster hosted on AWS EKS
-- Redis deployed as a Kubernetes service
-- Application exposed using a LoadBalancer service
+## Project Overview
+
+This project focuses on deploying a collaborative whiteboard application using modern cloud-native technologies. The application is containerised with Docker, hosted on an Amazon EKS cluster, and uses Redis to maintain shared application state across multiple users.
+
+The repository includes Kubernetes deployment and service configurations required to deploy both the application and Redis within a Kubernetes cluster.
 
 ---
 
-## Tech Stack
-- Node.js (v18+ recommended)
-- Docker & Docker Desktop
-- AWS ECR (Elastic Container Registry)
-- AWS EKS (Elastic Kubernetes Service)
-- Kubernetes (kubectl)
+## Key Features
+
+- Real-time collaborative whiteboard application
+- Docker containerisation
+- Kubernetes-based deployment and orchestration
+- Amazon EKS cluster deployment
+- Amazon ECR container image management
+- Redis integration for shared application state
+- LoadBalancer service for external application access
+
+---
+
+## Architecture
+
+```
+Users
+   │
+   ▼
+AWS Load Balancer
+   │
+   ▼
+Kubernetes Service
+   │
+   ▼
+Whiteboard Application Pods
+   │
+   ▼
+Redis Service
+   │
+   ▼
+Redis Pod
+```
+
+---
+
+## Technology Stack
+
+| Category | Technologies |
+|----------|--------------|
+| Programming | Node.js |
+| Containerisation | Docker |
+| Container Registry | Amazon ECR |
+| Orchestration | Kubernetes |
+| Cloud Platform | Amazon EKS |
+| Database / Cache | Redis |
+| Infrastructure Tools | AWS CLI, kubectl, eksctl |
+
+---
+
+## Repository Structure
+
+```
+.
+├── README.md
+├── redis.yaml
+├── whiteboard-deployment.yaml
+└── whiteboard-service.yaml
+```
+
+---
+
+## Deployment Workflow
+
+The deployment follows a cloud-native workflow:
+
+1. Build the Docker image for the whiteboard application.
+2. Push the image to Amazon Elastic Container Registry (ECR).
+3. Create and configure an Amazon EKS cluster.
+4. Deploy Redis using Kubernetes.
+5. Deploy the whiteboard application using Kubernetes Deployment and Service resources.
+6. Access the application through the Kubernetes LoadBalancer.
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Docker Desktop
+- Node.js (v18 or later)
+- AWS CLI
+- kubectl
 - eksctl
-- Redis
+- AWS Account with EKS and ECR permissions
 
----
+### Clone the Repository
 
-## Prerequisites
-
-Ensure the following tools are installed and working:
-
-- **Git** – clone repositories
-- **Docker Desktop** – build and test containers
-- **Node.js v18+** – optional local development
-- **AWS CLI** – AWS authentication and services
-- **kubectl** – Kubernetes CLI
-- **eksctl** – EKS cluster creation and management
-
-Verify installations:
 ```bash
-git --version
-docker --version
-node -v
-aws --version
-kubectl version --client
-eksctl version
+git clone https://github.com/YOUR_USERNAME/cloud-native-whiteboard.git
+cd cloud-native-whiteboard
+```
 
-Phase 1 — Run Application Locally
-----------------------------------
-Start Docker Desktop
+### Deploy the Application
 
-Clone the whiteboard source code:
-
-git clone https://github.com/cracker0dks/whiteboard.git
-cd whiteboard
-npm install
-npm run start:dev
-
-Run using Docker if a Dockerfile is present:
-
-docker build -t whiteboard-aws .
-docker run -d -p 8080:8080 whiteboard-aws
-kubectl version --client
-eksctl version
-Open in browser:
-
-http://localhost:8080/
-
-Phase 2 — Configure AWS CLI & IAM
----------------------------------------------------------
-1. Create AWS Account and IAM User
-
-Create an IAM user with programmatic access and permissions for:
-
-Amazon ECR
-
-Amazon EKS
-
-IAM (PassRole if required)
-
-2. Configure AWS CLI
-aws configure
-
-
-Use:
-
-Default region: eu-west-2
-
-Output format: json
-
-Verify authentication:
-
-aws sts get-caller-identity
-
-Phase 3 — Push Docker Image to AWS ECR
------------------------------------------------------------------------
-1. Create ECR Repository
-
-AWS Console → ECR → Create repository
-
-Example:
-
-Repository name: whiteboard-aws
-
-Repository URI:
-
-434439813077.dkr.ecr.eu-west-2.amazonaws.com/whiteboard-aws
-
-2. Authenticate Docker to ECR
-aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin 434439813077.dkr.ecr.eu-west-2.amazonaws.com
-
-3. Build, Tag and Push Image
-docker build -t whiteboard-aws .
-docker tag whiteboard-aws:latest 434439813077.dkr.ecr.eu-west-2.amazonaws.com/whiteboard-aws:latest
-docker push 434439813077.dkr.ecr.eu-west-2.amazonaws.com/whiteboard-aws:latest
-
-Phase 4 — Create EKS Cluster
-------------------------------------------------------------------------------------------
-
-⚠️ Delete any previous EKS clusters or CloudFormation stacks before creating a new one.
-
-Create the cluster:
-
-eksctl create cluster \
-  --name whiteboard-eks \
-  --version 1.30 \
-  --region eu-west-2 \
-  --nodegroup-name whiteboard-nodes \
-  --node-type t3.medium \
-  --nodes 3 \
-  --nodes-min 3 \
-  --nodes-max 6 \
-  --managed
-Update kubeconfig:
-
-aws eks update-kubeconfig --region eu-west-2 --name whiteboard-eks
-
-
-Verify nodes:
-
-kubectl get nodes
-
-Phase 5 — Deploy Kubernetes Resources
-------------------------------------------------------------
-1. Navigate to Kubernetes YAML directory
-cd C:\Users\jothy\OneDrive\Desktop\k8s
-
-2. Update Image in Deployment
-
-Edit whiteboard-deployment.yaml:
-
-image: 434439813077.dkr.ecr.eu-west-2.amazonaws.com/whiteboard-aws:latest
-
-3. Apply Kubernetes YAML Files
-
-Deploy application:
-
-kubectl apply -f whiteboard-deployment.yaml
-kubectl apply -f whiteboard-service.yaml
-
+Create your EKS cluster and configure kubectl.
 
 Deploy Redis:
 
-kubectl apply -f redis-deployment.yaml
-kubectl apply -f redis-service.yaml
+```bash
+kubectl apply -f redis.yaml
+```
 
+Deploy the application:
 
-Check pods:
+```bash
+kubectl apply -f whiteboard-deployment.yaml
+kubectl apply -f whiteboard-service.yaml
+```
 
-kubectl get pods -o wide
+Verify deployment:
 
-
-Check services and external IP:
-
+```bash
+kubectl get pods
 kubectl get svc
+```
+
+Access the application using the external IP assigned to the LoadBalancer service.
+
+---
+
+## Learning Outcomes
+
+This project provided practical experience in:
+
+- Cloud-native application deployment
+- Docker containerisation
+- Kubernetes deployments and services
+- Amazon EKS cluster management
+- Amazon ECR image management
+- Redis integration within Kubernetes
+- Cloud infrastructure and DevOps practices
+
+---
+
+## Future Enhancements
+
+- Implement CI/CD using GitHub Actions
+- Add HTTPS using AWS Application Load Balancer
+- Integrate monitoring with Prometheus and Grafana
+- Implement Horizontal Pod Autoscaling
+- Add persistent storage for application data
+
+---
 
 
-Access the application:
-
-http://<EXTERNAL-IP>:<PORT>/
-
-Monitoring (Optional)
-
-View resource usage:
-
-kubectl top nodes
-kubectl top pods
-
-Troubleshooting
-External IP shows <pending>
-
-Wait a few minutes and recheck:
-
-kubectl get svc
-
-
-Ensure Service type is LoadBalancer
-
-Pods stuck in ImagePullBackOff
-
-Confirm ECR image URI is correct
-
-Ensure image was pushed successfully
-
-Inspect pod events:
-
-kubectl describe pod <pod-name>
-
-Kubernetes authentication issues
-aws eks update-kubeconfig --region eu-west-2 --name whiteboard-eks
-kubectl get nodes
-Author
-
-Jothy Shivani Sureshkumar
-
-This project demonstrates hands-on experience with AWS, Docker, Kubernetes, EKS, ECR, and Redis, following real-world DevOps and cloud deployment practices.
